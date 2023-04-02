@@ -1,0 +1,260 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px 100px;
+  display: flex;
+  justify-content: space-between; /* flex's attr: decide the arragement of inside elements for horizontal axis*/
+  align-items: center; /* flex's attr: decide the arragement of inside elements for vertical axis*/
+  z-index: 99;
+}
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: url("background.jpeg") no-repeat; /* Image by brgfx on Freepik */
+  background-size: cover;
+  background-position: center;
+}
+
+.logo {
+  font-size: 2em;
+  color: #fff;
+  user-select: none;
+}
+
+.navigation a {
+  position: relative;
+  font-size: 1.1em;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: 40px; /* add margin-left for every a element*/
+}
+
+/* 額外新加偽元素就在a tag後面 */
+.navigation a::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 3px; /* add this line will appear */
+  background: #fff;
+  border-radius: 5px;
+  left: 0;
+  bottom: -6px;
+  transform-origin: right; /*  線從右邊出來右邊結束*/
+  transform: scaleX(0); /* line disappear with x-axis at first*/
+  transition: transform 0.5s;
+}
+
+.navigation a:hover::after {
+  transform: scaleX(1); /* line will appear when hover,same width as a element*/
+  transform-origin: left;
+}
+
+.navigation .btnLogin-popup {
+  width: 130px;
+  height: 50px;
+  background: transparent;
+  border: 2px solid #fff;
+  outline: none; /* not sure what the functoin is*/
+  border-radius: 6px;
+  cursor: pointer; /* when cursor hover above will show pointer*/
+  font-size: 1.1em;
+  color: #fff;
+  font-weight: 500;
+  margin-left: 40px;
+}
+
+.navigation .btnLogin-popup:hover {
+  background: #fff;
+  color: #162938;
+}
+
+.wrapper {
+  position: relative;
+  width: 400px;
+  height: 440px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  backdrop-filter: blur(20px); /* 背景霧面效果 */
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5); /* 背景陰影效果 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* 叉叉&login, register form溢出隱藏 */
+  transition: transform 0.5s ease, height 0.2s ease;
+  transform: scale(0);
+}
+
+.wrapper.active-popup {
+  transform: scale(1);
+}
+
+.wrapper.active {
+  height: 520px;
+}
+
+.wrapper .form-box {
+  width: 100%;
+  padding: 40px;
+}
+
+/* 因為login跟form-box是同輩關係不能有空格 */
+.wrapper .form-box.login {
+  transition: transform 0.18s ease;
+  transform: translateX(0);
+}
+
+/* click register, login box會往左移 */
+.wrapper.active .form-box.login {
+  transition: none;
+  transform: translateX(-400px);
+}
+.wrapper .form-box.register {
+  position: absolute;
+  transition: none;
+  transform: translateX(400px);
+}
+
+.wrapper.active .form-box.register {
+  transition: transform 0.18s ease;
+  transform: translateX(0);
+}
+
+.wrapper .icon-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 45px;
+  height: 45px;
+  background: #162938;
+  font-size: 2em;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom-left-radius: 20px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.form-box h2 {
+  font-size: 2em;
+  color: #162938;
+  text-align: center;
+}
+
+/* 產生輸入的底線 */
+.input-box {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  border-bottom: 2px solid #162938;
+  margin: 30px 0;
+}
+
+.input-box label {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  font-size: 1em;
+  color: #162938;
+  font-weight: 500;
+  pointer-events: none;
+  transition: 0.5s;
+}
+
+/* 點擊box underline字體會往上 */
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+  top: -5px;
+}
+
+.input-box input {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  /* 下面三行控制使用者打出的字體 */
+  font-size: 1em;
+  color: #162938;
+  font-weight: 600;
+  /* 避免輸入太長壓到icon */
+  padding: 0 35px 0 5px;
+}
+
+.input-box .icon {
+  position: absolute;
+  right: 8px;
+  font-size: 1.2em;
+  color: #162938;
+  line-height: 57px;
+}
+
+.remember-forgot {
+  font-size: 0.9em;
+  color: #162938;
+  font-weight: 500;
+  margin: -15px 0 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.remember-forgot label input {
+  accent-color: #162938; /* 改變checkbox打勾處的顏色 */
+  margin-right: 3px;
+}
+
+.remember-forgot a {
+  color: #162938;
+  text-decoration: none;
+}
+
+.remember-forgot a:hover {
+  text-decoration: underline;
+}
+
+.btn {
+  width: 100%;
+  height: 45px;
+  background: #162938;
+  border: none;
+  outline: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  color: #fff;
+  font-weight: 500;
+}
+
+.login-register {
+  font-size: 0.9em;
+  color: #162938;
+  text-align: center;
+  font-weight: 500;
+  margin: 25px 0 10px;
+}
+
+.login-register p a {
+  color: #162938;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-register p a:hover {
+  text-decoration: underline;
+}
