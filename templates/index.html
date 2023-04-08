@@ -9,30 +9,38 @@
   </head>
   <body>
     <header>
-      <h2 class="logo">Logo</h2>
+      <h2 class="logo">ChefMate</h2>
       <nav class="navigation">
         <a href="#">Home</a>
         <a href="#">About</a>
-        <a href="#">Services</a>
         <a href="#">Contact</a>
         <button class="btnLogin-popup">Login</button>
       </nav>
     </header>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}", style="position:fixed; top:100px; right:50px;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <div class="wrapper">
       <span class="icon-close">
         <ion-icon name="close"></ion-icon>
       </span>
       <div class="form-box login">
         <h2>Login</h2>
-        <form action="#">
+        <form method="POST" action="{{ url_for('login') }}">
           <div class="input-box">
             <span class="icon"><ion-icon name="mail"></ion-icon></span>
-            <input type="email" required />
+            <input type="email" name= "email" required />
             <label>Email</label>
           </div>
           <div class="input-box">
             <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
-            <input type="password" required />
+            <input type="password" name= "password" required />
             <label>Password</label>
           </div>
           <div class="remember-forgot">
@@ -51,7 +59,7 @@
 
       <div class="form-box register">
         <h2>Registration</h2>
-        <form action="#">
+        <form method="POST" action="{{ url_for('signup') }}">
           <div class="input-box">
             <span class="icon"><ion-icon name="person"></ion-icon></span>
             <input type="text" required />
@@ -59,12 +67,12 @@
           </div>
           <div class="input-box">
             <span class="icon"><ion-icon name="mail"></ion-icon></span>
-            <input type="email" required />
+            <input type="email" name="email" required />
             <label>Email</label>
           </div>
           <div class="input-box">
             <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
-            <input type="password" required />
+            <input type="password" name= "password" required />
             <label>Password</label>
           </div>
           <div class="remember-forgot">
@@ -82,6 +90,42 @@
         </form>
       </div>
     </div>
+    <div class="content_div">
+    <div class="image_div">
+      {% block content %}
+    
+      <h1>Upload an Image</h1>
+    
+      {% if latest_image %}
+        <img src="{{ url_for('static', filename='images/' + latest_image) }}" alt="Latest Image" style="width: 300px; height: 300px;">
+        <br>
+        <div class="button-group">
+          <a href="{{ url_for('upload_image') }}" class="btn btn-secondary">Cancel</a>
+          <!-- <a href="{{ url_for('download_image', filename=latest_image) }}" class="btn btn-primary">Download</a> -->
+        </div>
+      {% else %}
+        <div class="image-placeholder">
+          <span>No images uploaded yet.</span>
+        </div>
+    
+        <form method="POST" enctype="multipart/form-data" class="photo_form">
+          {{ form.csrf_token }}
+    
+          <div class="form-group">
+            {{ form.image.label }} {{ form.image }}
+          </div>
+    
+          <div class="form-group" style="width:50%;" >
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+    
+        </form>
+    
+      {% endif %}
+    
+      {% endblock %}
+    </div>
+  </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script
       type="module"

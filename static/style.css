@@ -16,27 +16,30 @@ header {
   justify-content: space-between; /* flex's attr: decide the arragement of inside elements for horizontal axis*/
   align-items: center; /* flex's attr: decide the arragement of inside elements for vertical axis*/
   z-index: 99;
+  backdrop-filter: blur(5px); /* 背景霧面效果 */
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5); /* 背景陰影效果 */
+
 }
 body {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: url("background.jpeg") no-repeat; /* Image by brgfx on Freepik */
+  background: url("background2.jpg") no-repeat; /* Photo by Luna  Lovegood: https://www.pexels.com/photo/photo-of-sliced-cheese-on-wooden-surface-4087609/ */
   background-size: cover;
   background-position: center;
 }
 
 .logo {
   font-size: 2em;
-  color: #fff;
+  color:#162938;
   user-select: none;
 }
 
 .navigation a {
   position: relative;
   font-size: 1.1em;
-  color: #fff;
+  color:#162938;
   text-decoration: none;
   font-weight: 500;
   margin-left: 40px; /* add margin-left for every a element*/
@@ -66,23 +69,24 @@ body {
   width: 130px;
   height: 50px;
   background: transparent;
-  border: 2px solid #fff;
+  border: 2px solid #162938;
   outline: none; /* not sure what the functoin is*/
   border-radius: 6px;
   cursor: pointer; /* when cursor hover above will show pointer*/
   font-size: 1.1em;
-  color: #fff;
+  color:#162938;
   font-weight: 500;
   margin-left: 40px;
 }
 
 .navigation .btnLogin-popup:hover {
   background: #fff;
+  border: 2px solid #fff;
   color: #162938;
 }
 
 .wrapper {
-  position: relative;
+  position: absolute;
   width: 400px;
   height: 440px;
   background: transparent;
@@ -96,6 +100,7 @@ body {
   overflow: hidden; /* 叉叉&login, register form溢出隱藏 */
   transition: transform 0.5s ease, height 0.2s ease;
   transform: scale(0);
+  z-index: 9999;
 }
 
 .wrapper.active-popup {
@@ -109,6 +114,7 @@ body {
 .wrapper .form-box {
   width: 100%;
   padding: 40px;
+  
 }
 
 /* 因為login跟form-box是同輩關係不能有空格 */
@@ -257,4 +263,49 @@ body {
 
 .login-register p a:hover {
   text-decoration: underline;
+}
+
+.image-placeholder {
+  width: 300px;
+  height: 300px;
+  background-color: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-placeholder span {
+  font-size: 18px;
+  color: #aaa;
+}
+
+.content_div{
+  backdrop-filter: blur(5px); /* 背景霧面效果 */
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5); /* 背景陰影效果 */
+  border-radius: 6px;
+  width:90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.photo_form{
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center;
+}
+
+.form-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.button-group{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
