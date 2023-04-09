@@ -4,9 +4,73 @@ from flask import Flask, render_template, request, flash, redirect, url_for, ses
 from flask_wtf import FlaskForm
 from wtforms import FileField, SubmitField
 
+from flask_sqlalchemy import SQLAlchemy
+from google.cloud.sql.connector import Connector, IPTypes
+import json, datetime
+
+# Python Connector database connection function
+def getconn():
+    """
+    Initializes a connection pool for a Cloud SQL instance of MySQL.
+
+    Uses the Cloud SQL Python Connector with Automatic IAM Database Authentication.
+    """
+    # Note: Saving credentials in environment variables is convenient, but not
+    # secure - consider a more secure solution such as
+    # Cloud Secret Manager (https://cloud.google.com/secret-manager) to help
+    # keep secrets safe.
+    info = {}
+    with open('secret.json', "r") as f:
+        info = json.loads(f.read())
+  
+    # initialize Cloud SQL Python Connector object
+    instance_connection_name = info["INSTANCE_CONNECTION_NAME"]  # e.g. 'project:region:instance'
+    db_iam_user = info["DB_IAM_USER"]  # e.g. 'sa-name@project-id.iam'
+    db_name = info["DB_NAME"]  # e.g. 'my-database'
+    ip_type = IPTypes.PUBLIC
+
+    with Connector() as connector:
+        conn = connector.connect(
+            instance_connection_name,
+            "pymysql",
+            user=db_iam_user,
+            enable_iam_auth=True,
+            db=db_name,
+            ip_type= ip_type
+        )
+        return conn
 
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
 app.secret_key = 'randomGeneratedKey'
+
+# The Cloud SQL Python Connector can be used with SQLAlchemy
+# using the 'creator' argument to 'create_engine'
+# configure Flask-SQLAlchemy to use Python Connector
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://"
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "creator": getconn
+}
+
+db = SQLAlchemy(app)
+
+# database table schema
+class User(db.Model):
+    username = db.Column(db.String(16), primary_key=True, nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.String(32), nullable=False)
+    create_time = db.Column(db.DateTime)
+    """
+    def __repr__(self):
+        return '<User %r>' % self.username
+    """
+
+class Food_list(db.Model):
+    id = db.Column(db.Integer, primary_key=True, nullable=False, index=True)
+    food = db.Column(db.JSON)
+    """
+    def __repr__(self):
+        return '<Category %r>' % self.name
+    """
 
 class UploadForm(FlaskForm):
     image = FileField('Image')
@@ -20,10 +84,11 @@ class UploadForm(FlaskForm):
 def login():
     if request.method == 'POST':
         # Get the user data from the form
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
         
         # Check if the user exists in the cloud database
+        """
         url = 'http://your-database-api-url'
         data = {
             'email': email,
@@ -41,6 +106,20 @@ def login():
         else:
             flash('Invalid email or password', 'error')
             return redirect('/')
+        """
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            print("There is no data with {}".format(username)) # debug
+            return redirect('/')
+        elif user.password != password:
+            print("Incorrect password!") # debug
+            return redirect('/')
+        else:
+            session['username'] = username
+            session['password'] = password
+            print("Login successful!") # debug
+            flash('Login successful', 'success')
+            return redirect(url_for('dashboard'))
 
     # If the request method is GET, show the login form
     else:
