@@ -94,4 +94,5 @@ if __name__ == '__main__':
             row = {"email": email, "password": pwd, "create_time": ts}
             user_list[username] = row
         
-        # print(user_list)
+        # debug: print all users
+        print(user_list)
