@@ -110,9 +110,11 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user is None:
             print("There is no data with {}".format(username)) # debug
+            flash('No data for this user', 'error')
             return redirect('/')
         elif user.password != password:
             print("Incorrect password!") # debug
+            flash('Invalid email or password', 'error')
             return redirect('/')
         else:
             session['username'] = username
