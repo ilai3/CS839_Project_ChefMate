@@ -307,5 +307,11 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
+  flex-direction: row;
+}
+
+.link_btn{
+  text-decoration: none;
+  color:#FFF;
+  margin:10px;
 }

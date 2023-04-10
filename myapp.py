@@ -76,9 +76,10 @@ class UploadForm(FlaskForm):
     image = FileField('Image')
     submit = SubmitField('Upload')
     
-# @app.route('/')
-# def home():
-#     return render_template('index.html')
+@app.route('/')
+def home():
+    form = UploadForm()
+    return render_template('index.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -169,7 +170,7 @@ def signup():
         return render_template('index.html')
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/uploadImg', methods=['GET', 'POST'])
 def upload_image():
     form = UploadForm()
     if form.validate_on_submit():
@@ -195,8 +196,11 @@ def get_latest_image():
     return latest_image
 
 
-@app.route('/download/<filename>')
-def download_image(filename):
-    return send_file(os.path.join(app.static_folder, filename), as_attachment=True)
-if __name__ == '__main__':
-    app.run(debug=True)
+# @app.route('/recognition')
+# def object_recognition():
+#     if first time upload 
+#        query to db, but get nothing
+#        return home page
+#     else 
+#     compare the difference between uploaded photo and photo in db
+#     update db with latest photo
