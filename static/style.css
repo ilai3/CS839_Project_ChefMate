@@ -42,6 +42,9 @@ body {
   color:#162938;
   text-decoration: none;
   font-weight: 500;
+}
+
+.navigation a:not(.btnLogin-popup a) {
   margin-left: 40px; /* add margin-left for every a element*/
 }
 
@@ -314,4 +317,11 @@ body {
   text-decoration: none;
   color:#FFF;
   margin:10px;
+}
+
+.image_div{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }

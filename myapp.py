@@ -75,11 +75,11 @@ class Food_list(db.Model):
 class UploadForm(FlaskForm):
     image = FileField('Image')
     submit = SubmitField('Upload')
-    
+
+
 @app.route('/')
 def home():
-    form = UploadForm()
-    return render_template('index.html', form=form)
+    return render_template('index.html', form = UploadForm())
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -121,7 +121,7 @@ def login():
             session['username'] = username
             session['password'] = password
             print("Login successful!") # debug
-            flash('Login successful', 'success')
+            flash('Welcome '+username, 'success')
             return redirect(url_for('dashboard'))
 
     # If the request method is GET, show the login form
@@ -131,8 +131,8 @@ def login():
 @app.route('/dashboard')
 def dashboard():
     # Check if the user is logged in
-    if 'email' in session and 'password' in session:
-        return render_template('index.html')
+    if 'username' in session and 'password' in session:
+        return render_template('index.html', form = UploadForm())
     else:
         flash('You need to log in first', 'error')
         return redirect('/')
@@ -148,13 +148,13 @@ def logout():
 def signup():
     if request.method == 'POST':
         # Get the user data from the form
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
 
         # Store the user data in the cloud database
         url = 'http://your-database-api-url'
         data = {
-            'email': email,
+            'username': username,
             'password': password
         }
         response = requests.post(url, json=data)
@@ -173,12 +173,15 @@ def signup():
 @app.route('/uploadImg', methods=['GET', 'POST'])
 def upload_image():
     form = UploadForm()
-    if form.validate_on_submit():
-        image_file = form.image.data
-        filename = image_file.filename
-        image_file.save('static/images/' + filename)
-        return redirect(url_for('display_image', filename=filename))
-    return render_template('index.html', form=form)
+    if 'username' in session:
+        if form.validate_on_submit():
+            image_file = form.image.data
+            filename = image_file.filename
+            image_file.save('static/images/' + filename)
+            return redirect(url_for('display_image', filename=filename))
+    else:
+        flash('Please login', 'error')
+        return render_template('index.html', form=form)
 
 @app.route('/display/<filename>')
 def display_image(filename):
@@ -196,11 +199,16 @@ def get_latest_image():
     return latest_image
 
 
-# @app.route('/recognition')
-# def object_recognition():
-#     if first time upload 
-#        query to db, but get nothing
-#        return home page
-#     else 
-#     compare the difference between uploaded photo and photo in db
-#     update db with latest photo
+@app.route('/recognition')
+def object_recognition():
+    pass
+    # if query to db: 
+    #   compare the difference between uploaded photo and photo in db
+    #   update db with latest photo
+    # 
+    # else -> first time upload photo
+    #   return home page
+
+
+if __name__ == '__main__':
+    app.run(debug=True)

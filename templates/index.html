@@ -14,7 +14,11 @@
         <a href="#">Home</a>
         <a href="#">About</a>
         <a href="#">Contact</a>
-        <button class="btnLogin-popup">Login</button>
+        {% if 'username' in session %}
+          <button class="btnLogin-popup"><a href="{{ url_for('logout') }}">Logout</a></button>
+        {% else %}
+          <button class="btnLogin-popup">Login</button>
+        {% endif %}
       </nav>
     </header>
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -91,39 +95,40 @@
       </div>
     </div>
     <div class="content_div">
-    <div class="image_div">
-      {% block content %}
-    
-      <h1>Upload Your Pnatry Image</h1>
-    
-      {% if latest_image %}
-        <img src="{{ url_for('static', filename='images/' + latest_image) }}" alt="Latest Image" style="width: 300px; height: 300px;">
-        <br>
-        <div class="button-group">
-          <button class="btn btn-primary link_btn"><a href="{{ url_for('object_recognition') }}" class="link_btn">Create</a></button>
-          <button class="btn btn-secondary link_btn"><a href="{{ url_for('home') }}" class="link_btn">Cancel</a></button>
-      {% else %}
-        <div class="image-placeholder">
-          <span>No images uploaded yet.</span>
-        </div>
-    
-        <form action="/uploadImg" method="POST" enctype="multipart/form-data" class="photo_form">
-          {{ form.csrf_token }}
-    
-          <div class="form-group">
-            {{ form.image.label }} {{ form.image }}
+      <div class="image_div">
+        {% block content %}
+      
+        <h1>Upload Your Pantry Image</h1>
+      
+        {% if latest_image %}
+          <img src="{{ url_for('static', filename='images/' + latest_image) }}" alt="Latest Image" style="width: 300px; height: 300px;">
+          <br>
+          <div class="button-group">
+            <button class="btn btn-primary link_btn"><a href="{{ url_for('object_recognition') }}" class="link_btn">Create</a></button>
+            <button class="btn btn-secondary link_btn"><a href="{{ url_for('home') }}" class="link_btn">Cancel</a></button>
           </div>
-    
-          <div class="form-group" style="width:50%;" >
-            {{ form.submit(class="btn btn-primary") }}
+        {% else %}
+          <div class="image-placeholder">
+            <span>No images uploaded yet.</span>
           </div>
-    
-        </form>
-    
-      {% endif %}
-    
-      {% endblock %}
-    </div>
+      
+          <form action="/uploadImg" method="POST" enctype="multipart/form-data" class="photo_form">
+            {{ form.csrf_token }}
+      
+            <div class="form-group">
+              {{ form.image.label }} {{ form.image }}
+            </div>
+      
+            <div class="form-group" style="width:50%;" >
+              {{ form.submit(class="btn btn-primary") }}
+            </div>
+      
+          </form>
+      
+        {% endif %}
+      
+        {% endblock %}
+      </div>
   </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script
