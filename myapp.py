@@ -71,7 +71,8 @@ class User(db.Model):
     """
 
 class Food_list(db.Model):
-    id = db.Column(db.Integer, primary_key=True, nullable=False, index=True)
+    username = db.Column(db.String(16), primary_key=True, db.ForeignKey("user.username"), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, nullable=False, index=True, autoincrement=True)
     food = db.Column(db.JSON)
     """
     def __repr__(self):
