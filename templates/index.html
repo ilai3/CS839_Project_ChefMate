@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Website with Login and Registration</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <!-- Sweet alert Js -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>ChefMate</title>
+
+</head>
   </head>
   <body>
     <header>
@@ -24,9 +31,22 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }}", style="position:fixed; top:100px; right:50px;">
-            {{ message }}
-          </div>
+        <script>
+
+          Swal.fire({
+
+              title:"{{ category.title() }}!",
+              // success , error , warning ,info
+
+              text: "{{ message }}",
+              // Custom message flashed from your flask routes
+
+              icon: "{{ category }}" == "danger" ? "error" : "{{ category }}"
+              // success , error , warning ,info
+
+          })
+
+        </script>
         {% endfor %}
       {% endif %}
     {% endwith %}
@@ -51,7 +71,7 @@
             <label for=""> <input type="checkbox" />Remember me </label>
             <a href="#">Forgot Password?</a>
           </div>
-          <button type="submit" class="btn">Login</button>
+          <button type="submit" class="btns">Login</button>
           <div class="login-register">
             <p>
               Don't have an account?
@@ -84,7 +104,7 @@
               <input type="checkbox" required />I agree to the terms & conditions
             </label>
           </div>
-          <button type="submit" class="btn">Register</button>
+          <button type="submit" class="btns">Register</button>
           <div class="login-register">
             <p>
               Already have an account?
@@ -104,8 +124,8 @@
           <img src="{{ url_for('static', filename='images/' + latest_image) }}" alt="Latest Image" style="width: 300px; height: 300px;">
           <br>
           <div class="button-group">
-            <button class="btn btn-primary link_btn"><a href="{{ url_for('object_recognition') }}" class="link_btn">Create</a></button>
-            <button class="btn btn-secondary link_btn"><a href="{{ url_for('home') }}" class="link_btn">Cancel</a></button>
+            <button class="btns btn-primary link_btn"><a href="{{ url_for('object_recognition') }}" class="link_btn">Create</a></button>
+            <button class="btns btn-secondary link_btn"><a href="{{ url_for('home') }}" class="link_btn">Cancel</a></button>
           </div>
         {% else %}
           <div class="image-placeholder">
@@ -120,7 +140,7 @@
             </div>
       
             <div class="form-group" style="width:50%;" >
-              {{ form.submit(class="btn btn-primary") }}
+              {{ form.submit(class="btns btn-primary") }}
             </div>
       
           </form>

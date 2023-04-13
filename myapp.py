@@ -159,11 +159,11 @@ def signup():
         else:
             logging.info('Register Success')
             flash('Register Success', 'success')
-            return redirect(url_for('login'))
+            return redirect('/')
 
     # If the request method is GET, show the signup form
     else:
-        return redirect(url_for('dashboard'))
+        return redirect('/')
 
 
 @app.route('/uploadImg', methods=['GET', 'POST'])
