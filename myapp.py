@@ -7,6 +7,12 @@ from wtforms import FileField, SubmitField
 from flask_sqlalchemy import SQLAlchemy
 from google.cloud.sql.connector import Connector, IPTypes
 import json, datetime
+import logging
+
+# Set up a specific logger with our desired output level
+# set to critical mode to disable debug log (level=logging.CRITICAL)
+# set to info mode to turn on debug log (level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(asctime)s - %(message)s', datefmt='%y-%b-%d %H:%M:%S')
 
 # Python Connector database connection function
 def getconn():
@@ -89,44 +95,25 @@ def login():
         password = request.form['password']
         
         # Check if the user exists in the cloud database
-        """
-        url = 'http://your-database-api-url'
-        data = {
-            'email': email,
-            'password': password
-        }
-        response = requests.get(url, params=data)
-
-        # Handle the response
-        if response.status_code == 200:
-            # Set the user's data in the session
-            session['email'] = email
-            session['password'] = password
-            flash('Login successful', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid email or password', 'error')
-            return redirect('/')
-        """
         user = User.query.filter_by(username=username).first()
         if user is None:
-            print("There is no data with {}".format(username)) # debug
+            logging.info("There is no data with {}".format(username)) # debug
             flash('No data for this user', 'error')
             return redirect('/')
         elif user.password != password:
-            print("Incorrect password!") # debug
+            logging.info("Incorrect password!") # debug
             flash('Invalid email or password', 'error')
             return redirect('/')
         else:
             session['username'] = username
             session['password'] = password
-            print("Login successful!") # debug
+            logging.info("Login successful!") # debug
             flash('Welcome '+username, 'success')
             return redirect(url_for('dashboard'))
 
     # If the request method is GET, show the login form
     else:
-        return render_template('index.html')
+        return redirect(url_for('dashboard'))
 
 @app.route('/dashboard')
 def dashboard():
@@ -149,25 +136,34 @@ def signup():
     if request.method == 'POST':
         # Get the user data from the form
         username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
 
+        user = User.query.filter_by(username=username).first()
+        if user is not None:
+            logging.info("User({}) exitst! Please try another username".format(username)) # debug
+            flash('User exitst! Please try another username', 'error')
+            return redirect('/')
+        
+        new_user = User(username=username, email=email, password=password, create_time=datetime.datetime.now())
         # Store the user data in the cloud database
-        url = 'http://your-database-api-url'
-        data = {
-            'username': username,
-            'password': password
-        }
-        response = requests.post(url, json=data)
+        db.session.add(new_user)
+        db.session.commit()
 
         # Handle the response
-        if response.status_code != 200:
-            return render_template('index.html')
-        else:
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            logging.info('Register Failed')
             flash('Register Failed', 'error')
-            return redirect('/')
+            return redirect(url_for('signup'))
+        else:
+            logging.info('Register Success')
+            flash('Register Success', 'success')
+            return redirect(url_for('login'))
+
     # If the request method is GET, show the signup form
     else:
-        return render_template('index.html')
+        return redirect(url_for('dashboard'))
 
 
 @app.route('/uploadImg', methods=['GET', 'POST'])
