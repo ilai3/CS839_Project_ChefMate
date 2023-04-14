@@ -1,9 +1,9 @@
 import requests
 import os
-from flask import Flask, render_template, request, flash, redirect, url_for, session, send_file
+from flask import Flask, render_template, request, flash, redirect, url_for, session, send_file, jsonify
 from flask_wtf import FlaskForm
 from wtforms import FileField, SubmitField
-
+from flask_mail import Mail, Message
 from flask_sqlalchemy import SQLAlchemy
 from google.cloud.sql.connector import Connector, IPTypes
 import json, datetime
@@ -49,6 +49,16 @@ def getconn():
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
 app.secret_key = 'randomGeneratedKey'
 
+# email setting
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'chefmate839@gmail.com'
+app.config['MAIL_PASSWORD'] = 'Cs839chefmate'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+
+mail = Mail(app)
+
 # The Cloud SQL Python Connector can be used with SQLAlchemy
 # using the 'creator' argument to 'create_engine'
 # configure Flask-SQLAlchemy to use Python Connector
@@ -71,7 +81,7 @@ class User(db.Model):
     """
 
 class Food_list(db.Model):
-    username = db.Column(db.String(16), primary_key=True, db.ForeignKey("user.username"), nullable=False)
+    username = db.Column(db.String(16), db.ForeignKey("user.username"), primary_key=True,  nullable=False)
     id = db.Column(db.Integer, primary_key=True, nullable=False, index=True, autoincrement=True)
     food = db.Column(db.JSON)
     """
@@ -198,14 +208,63 @@ def get_latest_image():
 
 @app.route('/recognition')
 def object_recognition():
-    pass
-    # if query to db: 
-    #   compare the difference between uploaded photo and photo in db
-    #   update db with latest photo
-    # 
-    # else -> first time upload photo
-    #   return home page
+    test_list={
+        'egg': 0,
+        'ham': 9,
+        'water': 2
+    }
+    username = session['username']
+    food_list = Food_list.query.filter_by(username=username).order_by(Food_list.id.desc()).first()
+    # it is first time for user to upload pantry
+    if food_list is None:
+        new_food = Food_list(username=username, food=test_list)
+        db.session.add(new_food)
+        db.session.commit()
+        flash('This is your first pantry!', 'success')
+        return redirect('/')
+    # not the first time to upload pantry, will compare the difference and update the latest food list in database
+    else:
+        old_list = food_list.food
+        keys1 = set(old_list.keys())
+        keys2 = set(test_list.keys())
+        diff1 = keys1 - keys2
+        diff2 = keys2 - keys1
+        common_keys = keys1 & keys2
+        diff3 = {k: (old_list[k] - test_list[k]) for k in common_keys if old_list[k] != test_list[k]}
+        difference = {}
+        difference.update({k: old_list[k] for k in diff1})
+        difference.update({k: test_list[k] for k in diff2})
+        difference.update(diff3)
+        
+        user = User.query.filter_by(username=username).first()
+        user_email = user.email
+        message = json.dumps(difference)
 
+        # send gmail with SMTP
+        # msg = Message('Your Shopping List from ChefMate', sender = 'chefmate839@gmail.com', recipients = "ilai3@wisc.edu")
+        # msg.body = json.dumps(difference)
+        # mail.send(msg)
+
+        # send email with mailgun
+        send_simple_message("ilai3@wisc.edu", message)
+        # send_simple_message(user_email, message)
+        print(message)
+        
+        # update the database, if under testing, don't recover comment
+        # new_food = Food_list(username=username, food=test_list)
+        # db.session.add(new_food)
+        # db.session.commit()
+        # flash('Here is the difference: '+json.dumps(difference), 'success')
+        return redirect('/')
+
+def send_simple_message(recipients, txt):
+	return requests.post(
+		"https://api.mailgun.net/v3/sandboxf6cbbd6cf88246d495116184fc07d291.mailgun.org/messages",
+		auth=("api", "f71b7c883f7997052282ee661f65cd9b-2cc48b29-dda92d69"),
+		data={"from": "ChefMate <postmaster@sandboxf6cbbd6cf88246d495116184fc07d291.mailgun.org>",
+			"to": recipients,
+			"subject": "Your Shopping List from ChefMate ",
+			"text": txt})
 
 if __name__ == '__main__':
     app.run(debug=True)
