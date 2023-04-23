@@ -15,7 +15,7 @@
   </head>
   <body>
     <header>
-      <h2 class="logo">ChefMate</h2>
+      <h2 class="logo"><a href="/"><img src="/static/logo.png" alt="SVG image" style="height:60px;"></a></h2>
       <nav class="navigation">
         <a href="#">Home</a>
         <a href="#">About</a>
@@ -31,7 +31,6 @@
       {% if messages %}
         {% for category, message in messages %}
         <script>
-          console.log("actived!")
           Swal.fire({
 
               title:"{{ category.title() }}!",
