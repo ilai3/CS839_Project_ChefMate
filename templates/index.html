@@ -10,9 +10,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <!-- Sweet alert Js -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <title>ChefMate</title>
-
-</head>
   </head>
   <body>
     <header>
@@ -32,7 +31,7 @@
       {% if messages %}
         {% for category, message in messages %}
         <script>
-
+          console.log("actived!")
           Swal.fire({
 
               title:"{{ category.title() }}!",
@@ -118,29 +117,28 @@
       <div class="image_div">
         {% block content %}
       
-        <h1>Upload Your Pantry Image</h1>
+        <h1 id="h1">Upload Your Pantry Image</h1>
       
         {% if latest_image %}
-          <img src="{{ url_for('static', filename='images/' + latest_image) }}" alt="Latest Image" style="width: 300px; height: 300px;">
+          <!-- <img id="imageHolder" alt="Latest Image" style="width: 300px; height: 300px;"> -->
           <br>
           <div class="button-group">
-            <button class="btns btn-primary link_btn"><a href="{{ url_for('object_recognition') }}" class="link_btn">Create</a></button>
             <button class="btns btn-secondary link_btn"><a href="{{ url_for('home') }}" class="link_btn">Cancel</a></button>
           </div>
         {% else %}
-          <div class="image-placeholder">
+          <div class="image-placeholder" id ="div1">
             <span>No images uploaded yet.</span>
           </div>
       
-          <form action="/uploadImg" method="POST" enctype="multipart/form-data" class="photo_form">
+          <form id="upload-form" method="POST" enctype="multipart/form-data" class="photo_form">
             {{ form.csrf_token }}
       
-            <div class="form-group">
-              {{ form.image.label }} {{ form.image }}
+            <div class="form-group" id="div2">
+              {{ form.image.label }} {{ form.image(id="photo-input") }}
             </div>
       
-            <div class="form-group" style="width:50%;" >
-              {{ form.submit(class="btns btn-primary") }}
+            <div class="form-group" style="width:50%;" id="div3">
+              {{ form.submit(class="btns btn-primary", id="uploadPicture") }}
             </div>
       
           </form>
@@ -151,6 +149,7 @@
       </div>
   </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script
       type="module"
       src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"
@@ -159,6 +158,66 @@
       nomodule
       src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"
     ></script>
+    <script>
+      const url = 'https://iamwyh.com:5001/recognize';
+      const uploadForm = document.getElementById('upload-form');
+      const h1 = document.getElementById('h1');
+      // const img = document.getElementById('imageHolder')
+      uploadForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fileInput = document.getElementById('photo-input');
+          const formData = new FormData();
+          
+          formData.append('file', fileInput.files[0]);
+          formData.append('threshold-range', 50);
+          formData.append('confidence-range', 15);
+          formData.append('model-types', 'YOLOv5m');
+          formData.append('enhanced', 'off');
+          formData.append('ensemble', 'off');
+          formData.append('tta', 'off');
+          console.log(fileInput.files[0])
+          axios.post(url, formData, {
+              headers: {
+                  'Content-Type': 'multipart/form-data'
+              }
+          }).then((response) => {
+              console.log(response);
+              Swal.fire('Great! Please receive the shopping list in your email!')
+              const img = document.createElement('img');
+              img.style.width = '300px';
+              img.style.height = '300px';
+              const imageURL = window.URL.createObjectURL(formData.get('file'));
+              img.src = imageURL;
+              h1.parentNode.insertBefore(img, h1.nextSibling);
+              document.getElementById("div1").style.display = "none";
+              document.getElementById("div2").style.display = "none";
+              document.getElementById("div3").style.display = "none";
+              document.getElementById("upload-form").style.display = "none";
+
+              var br = document.createElement("br");
+              var buttonGroup = document.createElement("div");
+              buttonGroup.className = "button-group";
+              var cancelButton = document.createElement("button");
+              cancelButton.className = "btns btn-primary";
+              var cancelButtonLink = document.createElement("a");
+              cancelButtonLink.href = "{{ url_for('home') }}";
+              cancelButtonLink.className = "link_btn";
+              cancelButtonLink.innerHTML = "Try another pantry";
+              cancelButton.appendChild(cancelButtonLink);
+              buttonGroup.appendChild(cancelButton);
+              h1.parentNode.insertBefore(br, img.nextSibling);
+              h1.parentNode.insertBefore(buttonGroup, br.nextSibling);
+
+              const responseData = JSON.stringify(response); // convert the response data to a JSON string
+              const xhr = new XMLHttpRequest();
+              xhr.open('POST', '/recognition');
+              xhr.setRequestHeader('Content-Type', 'application/json');
+              xhr.send(responseData); // send the JSON data to the Flask endpoint
+          }).catch((error) => {
+              console.log(error);
+          });
+      });
+  </script>
   </body>
 </html>
 

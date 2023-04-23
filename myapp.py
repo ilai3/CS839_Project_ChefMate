@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from google.cloud.sql.connector import Connector, IPTypes
 import json, datetime
 import logging
-
+from flask_cors import CORS
 # Set up a specific logger with our desired output level
 # set to critical mode to disable debug log (level=logging.CRITICAL)
 # set to info mode to turn on debug log (level=logging.INFO)
@@ -47,17 +47,8 @@ def getconn():
         return conn
 
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
+CORS(app)  # add CORS support to your Flask app
 app.secret_key = 'randomGeneratedKey'
-
-# email setting
-app.config['MAIL_SERVER']='smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'chefmate839@gmail.com'
-app.config['MAIL_PASSWORD'] = 'Cs839chefmate'
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-
-mail = Mail(app)
 
 # The Cloud SQL Python Connector can be used with SQLAlchemy
 # using the 'creator' argument to 'create_engine'
@@ -180,20 +171,18 @@ def signup():
 @app.route('/uploadImg', methods=['GET', 'POST'])
 def upload_image():
     form = UploadForm()
-    if 'username' in session:
-        if form.validate_on_submit():
-            image_file = form.image.data
-            filename = image_file.filename
-            image_file.save('static/images/' + filename)
-            return redirect(url_for('display_image', filename=filename))
-    else:
-        flash('Please login', 'error')
-        return render_template('index.html', form=form)
+    if form.validate_on_submit():
+        image_file = form.image.data
+        filename = image_file.filename
+        image_file.save('static/images/' + filename)
+        latest_image = get_latest_image()
+        return render_template('index.html', latest_image=latest_image, form=form)
 
-@app.route('/display/<filename>')
-def display_image(filename):
+@app.route('/display')
+def display_image():
     latest_image = get_latest_image()
-    return render_template('index.html', latest_image=latest_image)
+    form = UploadForm()
+    return render_template('index.html', latest_image=latest_image, form=form)
 
 def get_latest_image():
     images_dir = os.path.join(app.static_folder, 'images')
@@ -206,8 +195,17 @@ def get_latest_image():
     return latest_image
 
 
-@app.route('/recognition')
+@app.route('/recognition', methods=['POST'])
 def object_recognition():
+    response_dict = request.json
+    pantry_list = response_dict['data']['data']['names']
+    food_dict = {}
+    for item in pantry_list:
+        if item not in food_dict:
+            food_dict[item] = 1
+        else:
+            food_dict[item] += 1
+    print(food_dict)
     test_list={
         'egg': 0,
         'ham': 9,
@@ -217,6 +215,7 @@ def object_recognition():
     food_list = Food_list.query.filter_by(username=username).order_by(Food_list.id.desc()).first()
     # it is first time for user to upload pantry
     if food_list is None:
+        logging.info("First time upload")
         new_food = Food_list(username=username, food=test_list)
         db.session.add(new_food)
         db.session.commit()
@@ -224,6 +223,7 @@ def object_recognition():
         return redirect('/')
     # not the first time to upload pantry, will compare the difference and update the latest food list in database
     else:
+        logging.info("Not first time to upload")
         old_list = food_list.food
         keys1 = set(old_list.keys())
         keys2 = set(test_list.keys())
@@ -238,33 +238,44 @@ def object_recognition():
         
         user = User.query.filter_by(username=username).first()
         user_email = user.email
-        message = json.dumps(difference)
-
-        # send gmail with SMTP
-        # msg = Message('Your Shopping List from ChefMate', sender = 'chefmate839@gmail.com', recipients = "ilai3@wisc.edu")
-        # msg.body = json.dumps(difference)
-        # mail.send(msg)
-
-        # send email with mailgun
-        send_simple_message("ilai3@wisc.edu", message)
-        # send_simple_message(user_email, message)
-        print(message)
+        # message = json.dumps(difference)
+        old_pantry = createTable(old_list, "PREVIOUS PANTRY")
+        new_pantry = createTable(difference, "SHOPPING LIST")
+        message = "This is your previous pantry:\n"+old_pantry+"\n\n\n\nWhat you have consumed:\n"+new_pantry
         
+        # send email with mailgun
+        send_simple_message("j093760@gmail.com", message)
+        print(message)
+
         # update the database, if under testing, don't recover comment
         # new_food = Food_list(username=username, food=test_list)
         # db.session.add(new_food)
         # db.session.commit()
-        # flash('Here is the difference: '+json.dumps(difference), 'success')
         return redirect('/')
+   
 
-def send_simple_message(recipients, txt):
-	return requests.post(
-		"https://api.mailgun.net/v3/sandboxf6cbbd6cf88246d495116184fc07d291.mailgun.org/messages",
-		auth=("api", "f71b7c883f7997052282ee661f65cd9b-2cc48b29-dda92d69"),
-		data={"from": "ChefMate <postmaster@sandboxf6cbbd6cf88246d495116184fc07d291.mailgun.org>",
-			"to": recipients,
-			"subject": "Your Shopping List from ChefMate ",
-			"text": txt})
 
+
+def createTable(food_dict, title):
+    from prettytable import PrettyTable
+
+    # create the table object and add columns
+    table = PrettyTable()
+    table.field_names = ["Name", "Amount"]
+
+    # add rows to the table
+    for name, amount in food_dict.items():
+        table.add_row([name, amount])
+
+    # set formatting options for the table
+    table.align["Name"] = "l"
+    table.align["Amount"] = "r"
+    table.border = True
+    table.title = title
+    table.max_width["Name"] = 10
+    table.max_width["Amount"] = 10
+
+    # print the table
+    return table.get_string()
 if __name__ == '__main__':
     app.run(debug=True)
