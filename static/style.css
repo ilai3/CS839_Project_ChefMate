@@ -22,6 +22,7 @@ header {
 }
 body {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
@@ -248,6 +249,7 @@ body {
   font-size: 1em;
   color: #fff;
   font-weight: 500;
+  margin:10px;
 }
 
 .login-register {
@@ -311,6 +313,7 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: row;
+  margin:10px;
 }
 
 .link_btn{
@@ -324,4 +327,13 @@ body {
   justify-content: center;
   flex-direction: column;
   align-items: center;
+}
+
+#pantry_tables{
+  margin: auto;
+}
+
+.pantry_table{
+  margin: auto;
+  white-space: pre-wrap;
 }

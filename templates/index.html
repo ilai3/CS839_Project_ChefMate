@@ -211,6 +211,28 @@
               const xhr = new XMLHttpRequest();
               xhr.open('POST', '/recognition');
               xhr.setRequestHeader('Content-Type', 'application/json');
+              xhr.onreadystatechange = function (res) {
+                if (xhr.readyState === 4) {
+                  // console.log(res);
+                  let body_content = document.getElementsByClassName("content_div")[0].parentNode;
+                  let pantry_table = document.getElementById("pantry_tables");
+                  if(pantry_table) {
+                    pantry_table.remove();
+                  }
+                  pantry_table = document.createElement("div");
+                  pantry_table.id = "pantry_tables";
+                  pantry_table.className = "content_div";
+                  for (const [key, value] of Object.entries(JSON.parse(xhr.response))) {
+                    // console.log(key, value);
+                    let t = document.createElement("div");
+                    t.className = "pantry_table";
+                    // t.textContent = value.replace(/(?:\r\n|\r|\n)/g, '<br />');;
+                    t.textContent = value;
+                    t.style.whiteSpace = "pre-wrap";
+                    pantry_table.appendChild(t);
+                  }
+                  body_content.appendChild(pantry_table);
+              }};
               xhr.send(responseData); // send the JSON data to the Flask endpoint
           }).catch((error) => {
               console.log(error);

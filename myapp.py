@@ -251,7 +251,8 @@ def object_recognition():
         # new_food = Food_list(username=username, food=test_list)
         # db.session.add(new_food)
         # db.session.commit()
-        return redirect('/')
+        res = {"old": old_pantry, "new": new_pantry}
+        return res
    
 
 
@@ -277,5 +278,15 @@ def createTable(food_dict, title):
 
     # print the table
     return table.get_string()
+
+def send_simple_message(recipients, txt):
+    return requests.post(
+        "https://api.mailgun.net/v3/sandbox52c9b39fcd66471fa8a788fcdd86f28d.mailgun.org/messages",
+        auth=("api", "2e2f0804a12f2f17ab6b3f6962b4cb87-181449aa-48e6258f"),
+        data={"from": "ChefMate<postmaster@sandbox52c9b39fcd66471fa8a788fcdd86f28d.mailgun.org>",
+        "to": recipients,
+        "subject": "Your Shopping List from ChefMate ",
+        "text": txt})
+
 if __name__ == '__main__':
     app.run(debug=True)
