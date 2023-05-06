@@ -201,9 +201,7 @@ def object_recognition():
     global timer 
     timer += 1
     response_dict = request.json
-    pantry_list = {}
-    if timer != 1 and timer != 2:
-        pantry_list = response_dict['data']['data']['names']
+    pantry_list = response_dict['data']['data']['names']
     food_dict = {}
     for item in pantry_list:
         if item not in food_dict:
@@ -211,54 +209,66 @@ def object_recognition():
         else:
             food_dict[item] += 1
     print(food_dict)
+    print("timer: "+ str(timer))
+    test_list={}
+    if (timer == 1):
+        test_list={
+            'egg': 9,
+            'ham': 10,
+            'water': 4
+        }
+    else:
+        test_list={
+            'egg': 2,
+            'ham': 6,
+            'water': 0
+        }
 
     username = session['username']
     food_list = Food_list.query.filter_by(username=username).order_by(Food_list.id.desc()).first()
     # it is first time for user to upload pantry
     if food_list is None:
         logging.info("First time upload")
-        new_food = Food_list(username=username, food=food_dict)
+        new_food = Food_list(username=username, food=test_list)
         db.session.add(new_food)
         db.session.commit()
-        current_pantry = createTable(food_dict, "This is your current pantry:\n\n")
-        message = current_pantry
+        old_pantry = createTable(test_list, "This is your current pantry:\n\n")
+        message = old_pantry
         combine_msg = "Hello, "+ username+"\n\nWe are ChefMate - your pantry management partner!\nWe not only makes pantry management easy, but we also provide you with a shopping list that suggests the items you may need to refill.\nAfter we analyzed your pantry, we provide your pantry summary as below:\n\n" + message + "\n\nHope you have a good shopping day!\n\nBest,\nChefMate\n"
         # send email with mailgun
-        response = send_simple_message("j093760@livemail.tw", combine_msg)
-        print("response= "+ response.text)
-        res = {"current": current_pantry}
+        send_simple_message("j093760@livemail.tw", combine_msg)
+        res = {"old": old_pantry}
         return res 
     # not the first time to upload pantry, will compare the difference and update the latest food list in database
     else:
         logging.info("Not first time to upload")
         old_list = food_list.food
         keys1 = set(old_list.keys())
-        keys2 = set(food_dict.keys())
+        keys2 = set(test_list.keys())
         diff1 = keys1 - keys2
         diff2 = keys2 - keys1
         common_keys = keys1 & keys2
-        diff3 = {k: (old_list[k] - food_dict[k]) for k in common_keys if old_list[k] != food_dict[k]}
+        diff3 = {k: (old_list[k] - test_list[k]) for k in common_keys if old_list[k] != test_list[k]}
         difference = {}
         difference.update({k: old_list[k] for k in diff1})
-        # difference.update({k: food_dict[k] for k in diff2})
+        difference.update({k: test_list[k] for k in diff2})
         difference.update(diff3)
         
         user = User.query.filter_by(username=username).first()
         user_email = user.email
         # message = json.dumps(difference)
-        old_pantry = createTable(food_dict, "This is your current pantry:\n\n")
+        old_pantry = createTable(old_list, "This is your previous pantry:\n\n")
         new_pantry = createTable(difference, "What you have consumed:\n\n")
         message = old_pantry+"\n\n"+new_pantry
         combine_msg = "Hello, "+ username+"\n\nWe are ChefMate - your pantry management partner!\nWe not only makes pantry management easy, but we also provide you with a shopping list that suggests the items you may need to refill.\nAfter we analyzed your pantry, we provide your pantry summary as below:\n\n" + message + "\n\nHope you have a good shopping day!\n\nBest,\nChefMate\n"
         # send email with mailgun
-        response = send_simple_message("j093760@livemail.tw", combine_msg)
-        print("response= "+ response.text)
+        send_simple_message("j093760@livemail.tw", combine_msg)
         print(combine_msg)
 
         # update the database, if under testing, don't recover comment
-        new_food = Food_list(username=username, food=food_dict)
-        db.session.add(new_food)
-        db.session.commit()
+        # new_food = Food_list(username=username, food=test_list)
+        # db.session.add(new_food)
+        # db.session.commit()
 
         res = {"old": old_pantry, "new": new_pantry}
         return res
@@ -286,10 +296,18 @@ def createTable(food_dict, title):
 
     return title+result
 
+# def send_simple_message():
+#     return requests.post(
+#         "https://api.mailgun.net/v3/sandbox52c9b39fcd66471fa8a788fcdd86f28d.mailgun.org/messages",
+#         auth=("api", "2e2f0804a12f2f17ab6b3f6962b4cb87-181449aa-48e6258f"),
+#         data={"from": "ChefMate<postmaster@sandbox52c9b39fcd66471fa8a788fcdd86f28d.mailgun.org>",
+#         "to": recipients,
+#         "subject": "Your Shopping List from ChefMate ",
+#         "text": txt})
 def send_simple_message(recipients, txt):
 	return requests.post(
 		"https://api.mailgun.net/v3/sandboxcdfd0ddc8df84559a7c4c21cb21a1d6f.mailgun.org/messages",
-		auth=("api", "see secret.json"),
+		auth=("api", "7529d1ccc9700b45d75ec8d1f419063c-70c38fed-d0cda57f"),
 		data={"from": "ChefMate<postmaster@sandboxcdfd0ddc8df84559a7c4c21cb21a1d6f.mailgun.org>",
         "to": recipients,
         "subject": "Your Shopping List from ChefMate ",

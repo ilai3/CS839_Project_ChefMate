@@ -9,6 +9,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <!-- Sweet alert Js -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <title>ChefMate</title>
@@ -17,9 +18,8 @@
     <header>
       <h2 class="logo"><a href="/"><img src="/static/logo.png" alt="SVG image" style="height:60px;"></a></h2>
       <nav class="navigation">
-        <a href="#">Home</a>
-        <a href="#">About</a>
-        <a href="#">Contact</a>
+        <a href="/">Home</a>
+        <a href="{{ url_for('contact') }}">Contact</a>
         {% if 'username' in session %}
           <button class="btnLogin-popup"><a href="{{ url_for('logout') }}">Logout</a></button>
         {% else %}
@@ -39,7 +39,7 @@
               text: "{{ message }}",
               // Custom message flashed from your flask routes
 
-              icon: "{{ category }}" == "danger" ? "error" : "{{ category }}"
+              icon: "{{ category }}" == "danger" ? "error" : "{{ category }}",
               // success , error , warning ,info
 
           })
@@ -73,7 +73,7 @@
           <div class="login-register">
             <p>
               Don't have an account?
-              <a href="#" class="register-link">Register</a>
+              <a href="#" class="register-link">Sign up</a>
             </p>
           </div>
         </form>
@@ -113,11 +113,39 @@
       </div>
     </div>
     <div class="content_div">
+      <div style="z-index:1;"><img src="/static/logo1.png" alt="SVG image"></div>
+      <div class="text_div">
+        <br>
+        <h1>ABOUT</h1><br><br><br>
+        <h3>BUY HEALTHY, EAT HEALTHY</h3><br>
+        <p>Welcome to ChefMate - the ultimate pantry management website! With ChefMate, you can effortlessly keep track of your pantry items by simply taking a photo of your pantry and uploading it to our site. Our cutting-edge technology recognizes the items in your pantry and calculates the quantity of each item. You can easily compare your before and after pantry photos to see what items you have consumed and what needs to be replenished.</p>
+        <br>
+        <p>ChefMate not only makes pantry management easy, but we also provide you with a shopping list that suggests the items you may need to refill. Our website helps you save time and money by avoiding duplicate purchases and wastage of expired products.</p>
+        <br>
+        <p>Join ChefMate now and experience the convenience of managing your pantry with ease.</p>
+      </div>
+      <div class="side_div">
+        <img src="/static/side1.jpeg" alt="Image">
+        <!-- photo refer from Unsplash -->
+      </div><br><br><br><br><br><br>
+      <div class="text2_div">
+        <br>
+        <h1>No Idea For Shopping List ?</h1><br><br><br>
+        <h3>TAKE A PANTRY PHOTO !</h3><br>
+      </div>
+      <div class="side2_div">
+        <img src="/static/action1.jpeg" alt="Image"> 
+        <!-- photo refer from istockphoto -->
+      </div><br><br><br>
+      <div>
+        <h1>Let's Try!</h1><br><br><br>
+      </div>
+      <br><br>
       <div class="image_div">
         {% block content %}
       
-        <h1 id="h1">Upload Your Pantry Image</h1>
-      
+        <h1 id="h1">Upload Your Pantry Photo</h1>
+        <br>
         {% if latest_image %}
           <!-- <img id="imageHolder" alt="Latest Image" style="width: 300px; height: 300px;"> -->
           <br>
@@ -164,79 +192,183 @@
       // const img = document.getElementById('imageHolder')
       uploadForm.addEventListener('submit', (e) => {
           e.preventDefault();
-          const fileInput = document.getElementById('photo-input');
-          const formData = new FormData();
-          
-          formData.append('file', fileInput.files[0]);
-          formData.append('threshold-range', 50);
-          formData.append('confidence-range', 15);
-          formData.append('model-types', 'YOLOv5m');
-          formData.append('enhanced', 'off');
-          formData.append('ensemble', 'off');
-          formData.append('tta', 'off');
-          console.log(fileInput.files[0])
-          axios.post(url, formData, {
-              headers: {
-                  'Content-Type': 'multipart/form-data'
+          var switcher = 1;
+          $.ajax({
+              type: "GET",
+              url: "/get-session-data",
+              success: function(data) {
+                console.log("data= "+ data);
+                if (data === "0"){
+                  Swal.fire('Plese login first!')
+                  return;
+                }
+                else{
+                  const fileInput = document.getElementById('photo-input');
+                  const formData = new FormData();
+                  
+                  formData.append('file', fileInput.files[0]);
+                  formData.append('threshold-range', 50);
+                  formData.append('confidence-range', 15);
+                  formData.append('model-types', 'YOLOv5m');
+                  formData.append('enhanced', 'off');
+                  formData.append('ensemble', 'off');
+                  formData.append('tta', 'off');
+                  console.log(fileInput.files[0])
+                  axios.post(url, formData, {
+                      headers: {
+                          'Content-Type': 'multipart/form-data'
+                      }
+                  }).then((response) => {
+                      console.log(response);
+                      
+                      const img = document.createElement('img');
+                      img.style.width = '300px';
+                      img.style.height = '300px';
+                      const imageURL = window.URL.createObjectURL(formData.get('file'));
+                      img.src = imageURL;
+                      h1.parentNode.insertBefore(img, h1.nextSibling);
+                      document.getElementById("div1").style.display = "none";
+                      document.getElementById("div2").style.display = "none";
+                      document.getElementById("div3").style.display = "none";
+                      document.getElementById("upload-form").style.display = "none";
+
+                      var br = document.createElement("br");
+                      var buttonGroup = document.createElement("div");
+                      buttonGroup.className = "button-group";
+                      var cancelButton = document.createElement("button");
+                      cancelButton.className = "btns btn-primary";
+                      var cancelButtonLink = document.createElement("a");
+                      cancelButtonLink.href = "{{ url_for('home') }}";
+                      cancelButtonLink.className = "link_btn";
+                      cancelButtonLink.innerHTML = "Try another pantry";
+                      cancelButton.appendChild(cancelButtonLink);
+                      buttonGroup.appendChild(cancelButton);
+                      h1.parentNode.insertBefore(br, img.nextSibling);
+                      h1.parentNode.insertBefore(buttonGroup, br.nextSibling);
+
+                      const responseData = JSON.stringify(response); // convert the response data to a JSON string
+                      const xhr = new XMLHttpRequest();
+                      xhr.open('POST', '/recognition');
+                      xhr.setRequestHeader('Content-Type', 'application/json');
+                      xhr.onreadystatechange = function (res) {
+                        if (xhr.readyState === 4) {
+                          // console.log("res: "+res);
+                          let content_div = document.getElementsByClassName("image_div")[0].parentNode;
+                          let image_div = document.getElementsByClassName("image_div")[0];
+                          // console.log(body_content)
+                          let pantry_table = document.getElementById("pantry_tables");
+                          if(pantry_table) {
+                            pantry_table.remove();
+                          }
+                          result_title = document.createElement("h1");
+                          result_title.innerText = "Pantry Summary:"
+                          result_title.style.marginBottom = "25px";
+                          pantry_table = document.createElement("div");
+                          pantry_table.id = "pantry_tables";
+                          pantry_table.className = "result_div";
+                          let json_object = JSON.parse(xhr.response);
+                          console.log(Object.keys(json_object).length);  
+                          if (Object.keys(json_object).length === 1){
+                            Swal.fire('Awesome! This is your first pantry!');
+                          }
+                          else{
+                            Swal.fire('Great! Please receive the shopping list from your email!');
+                          }
+                          for (const [key, value] of Object.entries(JSON.parse(xhr.response))) {
+                            let t = document.createElement("div");
+                            t.className = "pantry_table";
+                            // t.textContent = value.replace(/(?:\r\n|\r|\n)/g, '<br />');;
+                            t.textContent = value;
+                            t.style.whiteSpace = "pre-wrap";
+                            pantry_table.appendChild(t);
+                          }
+                          // body_content.appendChild(pantry_table);
+
+                          content_div.insertBefore(result_title, image_div.nextSibling);
+                          content_div.insertBefore(pantry_table, result_title.nextSibling);
+                          
+
+                      }};
+                      xhr.send(responseData); // send the JSON data to the Flask endpoint
+                  }).catch((response) => {
+                    console.log(response);
+                      
+                      const img = document.createElement('img');
+                      img.style.width = '300px';
+                      img.style.height = '300px';
+                      const imageURL = window.URL.createObjectURL(formData.get('file'));
+                      img.src = imageURL;
+                      h1.parentNode.insertBefore(img, h1.nextSibling);
+                      document.getElementById("div1").style.display = "none";
+                      document.getElementById("div2").style.display = "none";
+                      document.getElementById("div3").style.display = "none";
+                      document.getElementById("upload-form").style.display = "none";
+
+                      var br = document.createElement("br");
+                      var buttonGroup = document.createElement("div");
+                      buttonGroup.className = "button-group";
+                      var cancelButton = document.createElement("button");
+                      cancelButton.className = "btns btn-primary";
+                      var cancelButtonLink = document.createElement("a");
+                      cancelButtonLink.href = "{{ url_for('home') }}";
+                      cancelButtonLink.className = "link_btn";
+                      cancelButtonLink.innerHTML = "Try another pantry";
+                      cancelButton.appendChild(cancelButtonLink);
+                      buttonGroup.appendChild(cancelButton);
+                      h1.parentNode.insertBefore(br, img.nextSibling);
+                      h1.parentNode.insertBefore(buttonGroup, br.nextSibling);
+
+                      const responseData = JSON.stringify(response); // convert the response data to a JSON string
+                      const xhr = new XMLHttpRequest();
+                      xhr.open('POST', '/recognition');
+                      xhr.setRequestHeader('Content-Type', 'application/json');
+                      xhr.onreadystatechange = function (res) {
+                        if (xhr.readyState === 4) {
+                          // console.log("res: "+res);
+                          let content_div = document.getElementsByClassName("image_div")[0].parentNode;
+                          let image_div = document.getElementsByClassName("image_div")[0];
+                          // console.log(body_content)
+                          let pantry_table = document.getElementById("pantry_tables");
+                          if(pantry_table) {
+                            pantry_table.remove();
+                          }
+                          result_title = document.createElement("h1");
+                          result_title.innerText = "Pantry Summary:"
+                          result_title.style.marginBottom = "20px";
+                          pantry_table = document.createElement("div");
+                          pantry_table.id = "pantry_tables";
+                          pantry_table.className = "result_div";
+                          console.log("xhr.response"+xhr.response);
+                          let json_object = JSON.parse(xhr.response);
+                            
+                          if (Object.keys(json_object).length === 1){
+                            Swal.fire('Awesome! This is your first pantry!');
+                          }
+                          else{
+                            Swal.fire('Great! Please receive the shopping list from your email!');
+                          }
+                          for (const [key, value] of Object.entries(JSON.parse(xhr.response))) {
+                            let t = document.createElement("div");
+                            t.className = "pantry_table";
+                            // t.textContent = value.replace(/(?:\r\n|\r|\n)/g, '<br />');;
+                            t.textContent = value;
+                            t.style.whiteSpace = "pre-wrap";
+                            pantry_table.appendChild(t);
+                          }
+                          // body_content.appendChild(pantry_table);
+
+                          content_div.insertBefore(result_title, image_div.nextSibling);
+                          content_div.insertBefore(pantry_table, result_title.nextSibling);
+                          
+
+                      }};
+                      xhr.send(responseData); // send the JSON data to the Flask endpoint
+                  });
+                }
               }
-          }).then((response) => {
-              console.log(response);
-              Swal.fire('Great! Please receive the shopping list in your email!')
-              const img = document.createElement('img');
-              img.style.width = '300px';
-              img.style.height = '300px';
-              const imageURL = window.URL.createObjectURL(formData.get('file'));
-              img.src = imageURL;
-              h1.parentNode.insertBefore(img, h1.nextSibling);
-              document.getElementById("div1").style.display = "none";
-              document.getElementById("div2").style.display = "none";
-              document.getElementById("div3").style.display = "none";
-              document.getElementById("upload-form").style.display = "none";
-
-              var br = document.createElement("br");
-              var buttonGroup = document.createElement("div");
-              buttonGroup.className = "button-group";
-              var cancelButton = document.createElement("button");
-              cancelButton.className = "btns btn-primary";
-              var cancelButtonLink = document.createElement("a");
-              cancelButtonLink.href = "{{ url_for('home') }}";
-              cancelButtonLink.className = "link_btn";
-              cancelButtonLink.innerHTML = "Try another pantry";
-              cancelButton.appendChild(cancelButtonLink);
-              buttonGroup.appendChild(cancelButton);
-              h1.parentNode.insertBefore(br, img.nextSibling);
-              h1.parentNode.insertBefore(buttonGroup, br.nextSibling);
-
-              const responseData = JSON.stringify(response); // convert the response data to a JSON string
-              const xhr = new XMLHttpRequest();
-              xhr.open('POST', '/recognition');
-              xhr.setRequestHeader('Content-Type', 'application/json');
-              xhr.onreadystatechange = function (res) {
-                if (xhr.readyState === 4) {
-                  // console.log(res);
-                  let body_content = document.getElementsByClassName("content_div")[0].parentNode;
-                  let pantry_table = document.getElementById("pantry_tables");
-                  if(pantry_table) {
-                    pantry_table.remove();
-                  }
-                  pantry_table = document.createElement("div");
-                  pantry_table.id = "pantry_tables";
-                  pantry_table.className = "content_div";
-                  for (const [key, value] of Object.entries(JSON.parse(xhr.response))) {
-                    // console.log(key, value);
-                    let t = document.createElement("div");
-                    t.className = "pantry_table";
-                    // t.textContent = value.replace(/(?:\r\n|\r|\n)/g, '<br />');;
-                    t.textContent = value;
-                    t.style.whiteSpace = "pre-wrap";
-                    pantry_table.appendChild(t);
-                  }
-                  body_content.appendChild(pantry_table);
-              }};
-              xhr.send(responseData); // send the JSON data to the Flask endpoint
-          }).catch((error) => {
-              console.log(error);
           });
+
+          
       });
   </script>
   </body>
